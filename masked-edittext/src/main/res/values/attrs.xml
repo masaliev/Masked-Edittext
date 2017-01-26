@@ -9,6 +9,7 @@
         <attr name="maskIcon" format="reference"/>
         <attr name="maskIconColor" format="reference"/>
         <attr name="android:inputType"/>
+        <attr name="enablePaste" format="boolean"/>
         <attr name="disableCursorCorrection" format="boolean"/>
     </declare-styleable>
 </resources>

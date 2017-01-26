@@ -27,6 +27,7 @@
                 app:maskIcon="@drawable/abc_ic_clear_mtrl_alpha"
                 app:maskIconColor="@color/colorPrimary"
                 app:disableCursorCorrection="true"
+                app:enablePaste="true"
                 />
         <com.github.pinball83.maskededittext.MaskedEditText
                 android:id="@+id/masked_edit_text"

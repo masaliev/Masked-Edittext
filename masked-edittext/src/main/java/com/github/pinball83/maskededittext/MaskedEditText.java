@@ -35,6 +35,7 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
     private String deleteChar;
     private String replacementChar;
     private String format;
+    private boolean enablePaste;
     private boolean disableCursorCorrection;
     private boolean required;
     private ArrayList<Integer> listValidCursorPositions = new ArrayList<>();
@@ -94,6 +95,27 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
         this.setSingleLine(true);
         this.setFocusable(true);
         this.setFocusableInTouchMode(true);
+        if(!enablePaste) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+
+                    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                        return false;
+                    }
+
+                    public void onDestroyActionMode(ActionMode mode) {
+                    }
+
+                    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                        return false;
+                    }
+
+                    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                        return false;
+                    }
+                });
+            }
+        }
     }
 
     private void initByAttributes(Context context, AttributeSet attrs) {
@@ -131,6 +153,7 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
             this.setFilters(new InputFilter[]{maskedInputFilter});
 
             disableCursorCorrection = a.getBoolean(R.styleable.MaskedEditText_disableCursorCorrection, false);
+            enablePaste = a.getBoolean(R.styleable.MaskedEditText_enablePaste, false);
         } else {
             System.err.println("Mask not correct initialised ");
         }
@@ -341,6 +364,19 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
 
     private boolean isSpecialChar(char ch){
         return ch == this.replacementChar.charAt(0) || ch == this.deleteChar.charAt(0);
+    }
+
+    @Override
+    public int getSelectionStart() {
+        if(enablePaste){
+            return super.getSelectionStart();
+        }
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+            if (element.getMethodName().equals("canPaste")) {
+                return -1;
+            }
+        }
+        return super.getSelectionStart();
     }
 
     @Override
