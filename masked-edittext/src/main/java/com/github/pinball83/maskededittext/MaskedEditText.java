@@ -3,11 +3,15 @@ package com.github.pinball83.maskededittext;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatEditText;
 import android.text.*;
 import android.text.method.DigitsKeyListener;
 import android.util.AttributeSet;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -31,6 +35,7 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
     private String deleteChar;
     private String replacementChar;
     private String format;
+    private boolean disableCursorCorrection;
     private boolean required;
     private ArrayList<Integer> listValidCursorPositions = new ArrayList<>();
     private Integer firstAllowedPosition = 0;
@@ -89,7 +94,6 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
         this.setSingleLine(true);
         this.setFocusable(true);
         this.setFocusableInTouchMode(true);
-
     }
 
     private void initByAttributes(Context context, AttributeSet attrs) {
@@ -125,6 +129,8 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
 
             maskedInputFilter = new MaskedInputFilter();
             this.setFilters(new InputFilter[]{maskedInputFilter});
+
+            disableCursorCorrection = a.getBoolean(R.styleable.MaskedEditText_disableCursorCorrection, false);
         } else {
             System.err.println("Mask not correct initialised ");
         }
@@ -284,6 +290,57 @@ public class MaskedEditText extends AppCompatEditText implements View.OnTouchLis
             this.setSelection(firstAllowedPosition);
             this.requestFocus();
         }
+    }
+
+
+    @Override
+    protected void onSelectionChanged(int selStart, int selEnd) {
+        if(disableCursorCorrection){
+            super.onSelectionChanged(selStart, selEnd);
+            return;
+        }
+        if(firstAllowedPosition != null) {
+            if(selStart == firstAllowedPosition){
+                super.onSelectionChanged(selStart, selStart);
+            }else if(selStart < firstAllowedPosition){
+                setSelection(firstAllowedPosition);
+            }else {
+                int lastSelectablePosition = getLastSelectablePosition();
+                if(selStart == lastSelectablePosition){
+                    super.onSelectionChanged(selStart, selStart);
+                }else if (selStart > lastSelectablePosition) {
+                    setSelection(lastSelectablePosition);
+                } else {
+                    super.onSelectionChanged(selStart, selStart);
+                }
+            }
+        }else{
+            super.onSelectionChanged(selStart, selStart);
+        }
+    }
+
+    private int getLastSelectablePosition(){
+        String text = getText().toString();
+        int textLen = text.length();
+        for(int position = listValidCursorPositions.size() - 1; position > 0; position--){
+            int validCursorPosition = listValidCursorPositions.get(position);
+            if(validCursorPosition >= textLen){
+                continue;
+            }
+            int previousValidCursorPosition = listValidCursorPositions.get(position - 1);
+            if(isSpecialChar(text.charAt(validCursorPosition)) && !isSpecialChar(text.charAt(previousValidCursorPosition))){
+                return validCursorPosition;
+            }
+        }
+        if(isSpecialChar(text.charAt(listValidCursorPositions.get(0)))){
+            return listValidCursorPositions.get(0);
+        }else {
+            return listValidCursorPositions.get(listValidCursorPositions.size() - 1) + 1;
+        }
+    }
+
+    private boolean isSpecialChar(char ch){
+        return ch == this.replacementChar.charAt(0) || ch == this.deleteChar.charAt(0);
     }
 
     @Override

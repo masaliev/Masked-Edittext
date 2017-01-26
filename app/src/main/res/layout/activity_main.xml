@@ -19,6 +19,16 @@
             android:orientation="vertical">
 
         <com.github.pinball83.maskededittext.MaskedEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                app:mask="8 (***) *** **-**"
+                app:notMaskedSymbol="*"
+                app:maskIcon="@drawable/abc_ic_clear_mtrl_alpha"
+                app:maskIconColor="@color/colorPrimary"
+                app:disableCursorCorrection="true"
+                />
+        <com.github.pinball83.maskededittext.MaskedEditText
                 android:id="@+id/masked_edit_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
